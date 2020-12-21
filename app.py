@@ -6,6 +6,6 @@ from aws_python.aws_python_stack import AwsPythonStack
 
 
 app = core.App()
-AwsPythonStack(app, "aws-python")
+AwsPythonStack(app, "tomc-aws-python")
 
 app.synth()
