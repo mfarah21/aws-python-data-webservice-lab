@@ -3,17 +3,14 @@ from aws_cdk import (core,aws_dynamodb,aws_lambda,aws_apigateway)
 
 class AwsPythonStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, construct_id: str, vpc, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # base API
         base_api = aws_apigateway.RestApi(self, 'ApiGatewayForGetData', rest_api_name='ApiGatewayForGetData')
 
-        #
-        #  Web Service responding to /hello.
-        #   Resources: API resource, lambda
-        #
-        
+
+
         # Hello Lambda
         hello_lambda = aws_lambda.Function(self,'GetDataLambda',
         handler='hello-handler.handler',
@@ -25,11 +22,6 @@ class AwsPythonStack(core.Stack):
         hello_resource = base_api.root.add_resource('hello')
         hello_lambda_integration = aws_apigateway.LambdaIntegration(hello_lambda)
         hello_resource.add_method('GET', hello_lambda_integration)
-
-        #
-        #  Web Service responding to /dynamodb
-        #   Resources: API resource, lambda, dynamodb
-        #
 
         # DynamoDb table
         demo_table = aws_dynamodb.Table(
@@ -55,22 +47,3 @@ class AwsPythonStack(core.Stack):
 
         demo_table.grant_read_data(dynamodb_lambda)
         
-        #
-        #  Web Service responding to /aurora
-        #   Resources: API resource, lambda
-        #   Stacks: vpc, rds
-        #
-
-        # Aurora Lambda
-        aurora_lambda = aws_lambda.Function(self,'GetDataFromAuroraLambda',
-        handler='aurora-handler.handler',
-        runtime=aws_lambda.Runtime.PYTHON_3_7,
-        code=aws_lambda.Code.asset('lambda'),
-        vpc = vpc
-        )
-        # dynamodb_lambda.add_environment("TABLE_NAME", demo_table.table_name)
-
-        # Add webservice /dynamodb -> dynamodb lambda
-        aurora_resource = base_api.root.add_resource('aurora')
-        aurora_lambda_integration = aws_apigateway.LambdaIntegration(aurora_lambda)
-        aurora_resource.add_method('GET', aurora_lambda_integration)
