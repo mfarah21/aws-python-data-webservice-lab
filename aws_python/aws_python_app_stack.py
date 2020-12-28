@@ -1,10 +1,14 @@
-from aws_cdk import (core,aws_dynamodb,aws_lambda,aws_apigateway)
+from aws_cdk import (core,aws_dynamodb,aws_lambda,aws_apigateway,aws_rds,aws_ec2)
 
 
-class AwsPythonStack(core.Stack):
+class AwsPythonAppStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, construct_id: str, vpc, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, construct_id: str, vpc, rds, secret, clientsecuritygroup, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        print(f'Vpc is {vpc}')
+        print(f'rds is {rds}')
+        print(f'secret is {secret}')
 
         # base API
         base_api = aws_apigateway.RestApi(self, 'ApiGatewayForGetData', rest_api_name='ApiGatewayForGetData')
@@ -61,12 +65,22 @@ class AwsPythonStack(core.Stack):
         #   Stacks: vpc, rds
         #
 
+        # PyMySql Layer
+        pymysql_layer = aws_lambda.LayerVersion(self, 'PyMySql Layer', 
+        layer_version_name = 'pymysql',
+        code=aws_lambda.Code.asset('aws_python/layer-pymysql'),
+        compatible_runtimes = [aws_lambda.Runtime.PYTHON_3_7],
+        description='Layer for pymysql'
+        )
+
         # Aurora Lambda
         aurora_lambda = aws_lambda.Function(self,'GetDataFromAuroraLambda',
         handler='aurora-handler.handler',
         runtime=aws_lambda.Runtime.PYTHON_3_7,
         code=aws_lambda.Code.asset('lambda'),
-        vpc = vpc
+        vpc = vpc,
+        security_group = clientsecuritygroup,
+        layers=[pymysql_layer]
         )
         # dynamodb_lambda.add_environment("TABLE_NAME", demo_table.table_name)
 
@@ -74,3 +88,4 @@ class AwsPythonStack(core.Stack):
         aurora_resource = base_api.root.add_resource('aurora')
         aurora_lambda_integration = aws_apigateway.LambdaIntegration(aurora_lambda)
         aurora_resource.add_method('GET', aurora_lambda_integration)
+

@@ -2,15 +2,16 @@
 
 from aws_cdk import core
 
-from aws_python.aws_python_stack import AwsPythonStack
-from aws_python.cdk_vpc_stack import CdkVpcStack
-from aws_python.cdk_rds_stack import CdkRdsStack
+from aws_python.aws_python_app_stack import AwsPythonAppStack
+from aws_python.aws_python_vpc_stack import AwsPythonVpcStack
+from aws_python.aws_python_rds_stack import AwsPythonRdsStack
 
+rootstackname = "tomc-aws-python-v2-"
 
 app = core.App()
 
-vpc_stack = CdkVpcStack(app, "cdk-vpc")
-rds_stack = CdkRdsStack(app, "cdk-rds", vpc=vpc_stack.vpc)
-AwsPythonStack(app, "tomc-aws-python", vpc=vpc_stack.vpc)
+vpc_stack = AwsPythonVpcStack(app, rootstackname+"vpc")
+rds_stack = AwsPythonRdsStack(app, rootstackname+"rds", vpc=vpc_stack.vpc)
+AwsPythonAppStack(app, rootstackname+"app", vpc=vpc_stack.vpc, rds=rds_stack.cluster_arn, secret = rds_stack.secret_arn, clientsecuritygroup = rds_stack.rdsclient_securitygroup)
 
 app.synth()

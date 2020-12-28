@@ -1,7 +1,7 @@
 from aws_cdk import core
 from aws_cdk import (aws_ec2)
 
-class CdkVpcStack(core.Stack):
+class AwsPythonVpcStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -22,12 +22,13 @@ class CdkVpcStack(core.Stack):
                                cidr_mask=24
                            ), aws_ec2.SubnetConfiguration(
                                subnet_type=aws_ec2.SubnetType.ISOLATED,
-                               name="DB",
+                               name="Is",
                                cidr_mask=24
                            )
                            ],
                            # nat_gateway_provider=ec2.NatProvider.gateway(),
                            nat_gateways=2,
                            )
+
         core.CfnOutput(self, "Output",
                        value=self.vpc.vpc_id)
