@@ -1,14 +1,10 @@
-from aws_cdk import (core,aws_dynamodb,aws_lambda,aws_apigateway,aws_rds,aws_ec2)
+from aws_cdk import (core,aws_dynamodb,aws_lambda,aws_apigateway,aws_rds,aws_ec2,aws_secretsmanager)
 
 
 class AwsPythonAppStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, construct_id: str, vpc, rds, secret, clientsecuritygroup, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, construct_id: str, vpc, rds_endpoint, secret_arn, clientsecuritygroup, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-
-        print(f'Vpc is {vpc}')
-        print(f'rds is {rds}')
-        print(f'secret is {secret}')
 
         # base API
         base_api = aws_apigateway.RestApi(self, 'ApiGatewayForGetData', rest_api_name='ApiGatewayForGetData')
@@ -80,12 +76,20 @@ class AwsPythonAppStack(core.Stack):
         code=aws_lambda.Code.asset('lambda'),
         vpc = vpc,
         security_group = clientsecuritygroup,
+        timeout = core.Duration.minutes(1),
         layers=[pymysql_layer]
         )
-        # dynamodb_lambda.add_environment("TABLE_NAME", demo_table.table_name)
+        aurora_lambda.add_environment("RDS_HOST", rds_endpoint)
+        aurora_lambda.add_environment("RDS_SECRET", secret_arn)
 
         # Add webservice /dynamodb -> dynamodb lambda
         aurora_resource = base_api.root.add_resource('aurora')
         aurora_lambda_integration = aws_apigateway.LambdaIntegration(aurora_lambda)
         aurora_resource.add_method('GET', aurora_lambda_integration)
 
+        # grant lambda access to SSM
+        secret = aws_secretsmanager.Secret.from_secret_complete_arn(self,'Rds Secret',secret_arn)
+        secret.grant_read(aurora_lambda);
+        
+        
+        

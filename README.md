@@ -84,3 +84,8 @@ species VARCHAR(20));
 INSERT INTO Iris VALUES ('Puffball','Diane','hamster','f','1999-03-30',NULL);
 
 https://github.com/martinbpeters/cdk-vpc-postgres/blob/master/stacks/rds_aurora_serverless.py
+
+SHOW DATABASES;
+SHOW TABLES from Flowers;
+SHOW COLUMNS from Iris from Flowers;
+USE Flowers; SELECT * FROM Iris;

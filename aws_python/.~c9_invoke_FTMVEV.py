@@ -32,11 +32,47 @@ class AwsPythonRdsStack(core.Stack):
             scaling=aws_rds.ServerlessScalingOptions(auto_pause=None)
         )
         
-        print("Endpoint")
-        print(self.rds.cluster_endpoint.hostname)
-        print("Endpoint")
+        
         
         self.cluster_arn = self.rds.cluster_arn
         self.secret_arn = self.rds.secret.secret_arn
-        self.rds_endpoint = self.rds.cluster_endpoint.hostname
+        self.rds_endpoint = self.rds.cluster_endpoint
         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
