@@ -3,8 +3,12 @@ from aws_cdk import (core,aws_dynamodb,aws_lambda,aws_apigateway,aws_rds,aws_ec2
 
 class AwsPythonAppStack(core.Stack):
 
+    # STEP 3 - add parameters
+
     def __init__(self, scope: core.Construct, construct_id: str, vpc, rds_endpoint, secret_arn, clientsecuritygroup, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        # PART 1 - START
 
         # base API
         base_api = aws_apigateway.RestApi(self, 'ApiGatewayForGetData', rest_api_name='ApiGatewayForGetData')
@@ -14,7 +18,7 @@ class AwsPythonAppStack(core.Stack):
         #   Resources: API resource, lambda
         #
         
-        # Hello Lambda
+        # Lambda function
         hello_lambda = aws_lambda.Function(self,'GetDataLambda',
         handler='hello-handler.handler',
         runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -25,6 +29,10 @@ class AwsPythonAppStack(core.Stack):
         hello_resource = base_api.root.add_resource('hello')
         hello_lambda_integration = aws_apigateway.LambdaIntegration(hello_lambda)
         hello_resource.add_method('GET', hello_lambda_integration)
+
+        # PART 1 - END
+
+        # PART 2 - START
 
         #
         #  Web Service responding to /dynamodb
@@ -55,6 +63,10 @@ class AwsPythonAppStack(core.Stack):
 
         demo_table.grant_read_data(dynamodb_lambda)
         
+        # PART 2 - END
+        
+        # PART 3 - START
+
         #
         #  Web Service responding to /aurora
         #   Resources: API resource, lambda
@@ -91,5 +103,6 @@ class AwsPythonAppStack(core.Stack):
         secret = aws_secretsmanager.Secret.from_secret_complete_arn(self,'Rds Secret',secret_arn)
         secret.grant_read(aurora_lambda);
         
+        # PART 3 - END
         
         
