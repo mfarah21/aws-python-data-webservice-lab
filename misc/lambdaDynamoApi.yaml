@@ -1,0 +1,142 @@
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - "dynamodb:*"
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - "logs:CreateLogGroup"
+            - "logs:CreateLogStream"
+            - "logs:PutLogEvents"
+            Resource: "*"
+ 
+ 
+  AccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: 'tomc-cf'
+      AttributeDefinitions:
+          -
+            AttributeName: "AccountNumber"
+            AttributeType: "S"
+          -
+            AttributeName: "RoutingNumber"
+            AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "AccountNumber"
+          KeyType: "HASH"
+        -
+          AttributeName: "RoutingNumber"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+         
+         
+  apiGateway:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: "tomc-cf"
+ 
+  apiGatewayRootMethod:
+      Type: "AWS::ApiGateway::Method"
+      Properties:
+        AuthorizationType: "NONE"
+        HttpMethod: "GET"
+        Integration:
+          IntegrationHttpMethod: "POST"
+          Type: "AWS_PROXY"
+          Uri: !Sub
+            - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+            - lambdaArn: !GetAtt "BasicLambda.Arn"
+        ResourceId: !GetAtt "apiGateway.RootResourceId"
+        RestApiId: !Ref "apiGateway"     
+ 
+  apiGatewayDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn:
+      - "apiGatewayRootMethod"
+    Properties:
+      RestApiId: !Ref "apiGateway"
+      StageName: "Prod"
+ 
+  lambdaApiGatewayInvoke:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "BasicLambda.Arn"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${apiGateway}/*/GET/"
+ 
+  BasicLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.handler"
+      Role:
+        Fn::GetAtt:
+          - "LambdaExecutionRole"
+          - "Arn"
+      Runtime: "nodejs12.x"
+      Code:
+        ZipFile: |
+          const AWS = require('aws-sdk');
+          const ddb = new AWS.DynamoDB.DocumentClient();
+              
+          var allSummaryRecords = [];
+          function listAllSummaries(token, cb)
+          {
+          var params = {
+          //   ExpressionAttributeValues: {':p' : 'PFG'},
+          //   ProjectionExpression: 'Episode, Title, Subtitle',
+          //   FilterExpression: 'Service = :p',
+            //Limit: 10,  // Set to small limit to verify paging is working correctly
+            TableName: 'tomc-cf'
+          };
+              
+            if(token) params.ExclusiveStartKey  = token;
+              
+            ddb.scan(params, function(err, data) {
+            if (err) {
+              console.log("Error", err);
+            } else {
+              allSummaryRecords = allSummaryRecords.concat(data.Items);
+              if(data.LastEvaluatedKey )
+                listAllSummaries(data.LastEvaluatedKey , cb);
+              else
+                cb();
+            }
+          });
+              
+          }
+              
+          exports.handler = (event, context, callback) => {
+              
+              listAllSummaries(null, () => {
+                      
+                  const response = {
+                      statusCode: 200,
+                      body: allSummaryRecords,
+                  };
+                  callback(null, response);
+              });
+              
+          };
