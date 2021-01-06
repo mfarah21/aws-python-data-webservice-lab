@@ -32,7 +32,6 @@ Resources:
   AccountsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      # TableName: 'tomc-cf'
       KeySchema:
         -
           AttributeName: "id"
