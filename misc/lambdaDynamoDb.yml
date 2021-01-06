@@ -32,14 +32,14 @@ Resources:
   AccountsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: 'tomc-cf'
+      # TableName: 'tomc-cf'
       KeySchema:
         -
           AttributeName: "id"
           KeyType: "HASH"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
  
   BasicLambda:
     Type: "AWS::Lambda::Function"

@@ -28,35 +28,23 @@ Resources:
             - "logs:PutLogEvents"
             Resource: "*"
  
- 
-  AccountsTable:
-    Type: AWS::DynamoDB::Table
+  FlowersTable:
+    Type: "AWS::DynamoDB::Table"
     Properties:
-      TableName: 'tomc-cf'
-      AttributeDefinitions:
-          -
-            AttributeName: "AccountNumber"
-            AttributeType: "S"
-          -
-            AttributeName: "RoutingNumber"
-            AttributeType: "S"
       KeySchema:
-        -
-          AttributeName: "AccountNumber"
+        - AttributeName: "id"
           KeyType: "HASH"
-        -
-          AttributeName: "RoutingNumber"
-          KeyType: "RANGE"
+      AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-         
-         
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
   apiGateway:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
       Name: "tomc-cf"
- 
   apiGatewayRootMethod:
       Type: "AWS::ApiGateway::Method"
       Properties:
@@ -95,48 +83,21 @@ Resources:
         Fn::GetAtt:
           - "LambdaExecutionRole"
           - "Arn"
-      Runtime: "nodejs12.x"
+      Runtime: "python3.8"
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: !Ref "FlowersTable"
       Code:
         ZipFile: |
-          const AWS = require('aws-sdk');
-          const ddb = new AWS.DynamoDB.DocumentClient();
-              
-          var allSummaryRecords = [];
-          function listAllSummaries(token, cb)
-          {
-          var params = {
-          //   ExpressionAttributeValues: {':p' : 'PFG'},
-          //   ProjectionExpression: 'Episode, Title, Subtitle',
-          //   FilterExpression: 'Service = :p',
-            //Limit: 10,  // Set to small limit to verify paging is working correctly
-            TableName: 'tomc-cf'
-          };
-              
-            if(token) params.ExclusiveStartKey  = token;
-              
-            ddb.scan(params, function(err, data) {
-            if (err) {
-              console.log("Error", err);
-            } else {
-              allSummaryRecords = allSummaryRecords.concat(data.Items);
-              if(data.LastEvaluatedKey )
-                listAllSummaries(data.LastEvaluatedKey , cb);
-              else
-                cb();
-            }
-          });
-              
-          }
-              
-          exports.handler = (event, context, callback) => {
-              
-              listAllSummaries(null, () => {
-                      
-                  const response = {
-                      statusCode: 200,
-                      body: allSummaryRecords,
-                  };
-                  callback(null, response);
-              });
-              
-          };
+          import json
+          import boto3
+          
+          dynamodb = boto3.resource('dynamodb')
+          table = dynamodb.Table(process.env('DYNAMO_TABLE_NAME'))
+          
+          def lambda_handler(event, context):
+              result = table.scan()
+              return {
+                  "statusCode": 200,
+                  "body": json.dumps(result['Items'])
+              }
