@@ -85,6 +85,11 @@ print(os.environ)
 - Creating groups
 - Connecting to GitHub repository using Cloud 9
 - Working with branches
+```
+git config --global user.name "TomCavanaugh"
+git config --global user.email cavanaugh.tom@principal.com
+git config --global credential.helper cache
+```
 
 ### Part 10 - GitHub Advanced
 - Create GitHub Actions to deploy AWS CDK to AWS account
