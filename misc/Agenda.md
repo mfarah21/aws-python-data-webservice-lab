@@ -31,7 +31,15 @@ This is a interactive lab for a small group of developers.  The goal is to under
 
 ### Part 2 - Lambda Editor
 - Create Hello World lambda
+- [Lambda Limits](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html)
 - Print environment variables
+```
+import os
+
+...
+
+print(os.environ)
+```
 - Review logs
 - Understand "testing" tools
 - Update timeouts for Lambda
