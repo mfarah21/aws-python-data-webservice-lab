@@ -58,7 +58,6 @@ print(os.environ)
 - Discuss sharing capabilities
 - Curl
 - AWS CLI
-- Debugging Lambda
 
 ### Part 6 - CloudFormation
 - Re-create above solution using CloudFormation
