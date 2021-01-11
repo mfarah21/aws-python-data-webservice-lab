@@ -65,6 +65,7 @@ print(os.environ)
 - Create Stack + Delete Stack
 - Create Stack Change Sets
 - Set environment variables
+- `aws cloudformation create-stack --stack-name tomc --template-body file://tomc-cf1.yml --capabilities CAPABILITY_IAM`
 
 ### Part 7 - AWS CDK
 - PreAssignment: [CDK Workshop](https://cdkworkshop.com/)
