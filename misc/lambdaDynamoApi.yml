@@ -91,11 +91,12 @@ Resources:
         ZipFile: |
           import json
           import boto3
+          import os
           
           dynamodb = boto3.resource('dynamodb')
-          table = dynamodb.Table(process.env('DYNAMO_TABLE_NAME'))
+          table = dynamodb.Table(os.environ['DYNAMO_TABLE_NAME'])
           
-          def lambda_handler(event, context):
+          def handler(event, context):
               result = table.scan()
               return {
                   "statusCode": 200,
