@@ -1,6 +1,6 @@
 from aws_cdk import (core,aws_ec2,aws_rds)
 
-class AwsPythonRdsStack(core.Stack):
+class AwsPythonPostgresRdsStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, vpc, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -19,12 +19,11 @@ class AwsPythonRdsStack(core.Stack):
         vpc = vpc
         )
         
-        self.rds_securitygroup.add_ingress_rule(self.rdsclient_securitygroup,aws_ec2.Port.tcp(3306),"Allow RDS client security group members access to RDS on port 3306")
+        self.rds_securitygroup.add_ingress_rule(self.rdsclient_securitygroup,aws_ec2.Port.tcp(5432),"Allow RDS client security group members access to RDS on port 5432")
 
         self.rds = db_serverless_cluster = aws_rds.ServerlessCluster(self, "AuroraRds",
-            engine=aws_rds.DatabaseClusterEngine.AURORA_MYSQL,
-            # engine=aws_rds.DatabaseClusterEngine.AURORA_POSTGRESQL,
-            # parameterGroup=aws_rds.ParameterGroup.fromParameterGroupName(self, 'ParameterGroup', 'default.aurora-postgresql10'),
+            engine=aws_rds.DatabaseClusterEngine.AURORA_POSTGRESQL,
+            parameter_group =aws_rds.ParameterGroup.from_parameter_group_name(self, "ParameterGroup", "default.aurora-postgresql10"),
             default_database_name='Flowers',
             vpc=vpc,
             security_groups=[self.rds_securitygroup],

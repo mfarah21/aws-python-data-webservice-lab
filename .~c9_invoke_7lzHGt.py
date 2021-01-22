@@ -13,7 +13,7 @@ app = core.App()
 
 vpc_stack = AwsPythonVpcStack(app, rootstackname+"vpc")
 rds_stack = AwsPythonPostgresRdsStack(app, rootstackname+"rds", vpc=vpc_stack.vpc)
-# rds_stack = AwsPythonMysqlRdsStack(app, rootstackname+"rds", vpc=vpc_stack.vpc)
+rds_stack = AwsPythonPostgresRdsStack(app, rootstackname+"rds", vpc=vpc_stack.vpc)
 # AwsPythonAppStack(app, rootstackname+"app", vpc=vpc_stack.vpc, rds_endpoint=rds_stack.rds_endpoint, secret_arn = rds_stack.secret_arn, clientsecuritygroup = rds_stack.rdsclient_securitygroup)
 
 app.synth()
