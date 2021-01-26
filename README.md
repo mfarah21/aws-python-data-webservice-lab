@@ -42,3 +42,4 @@ $ cdk synth
 ## Lab details
 
 - DataSource: https://gist.github.com/curran/a08a1080b88344b0c8a7
+- https://www.pulumi.com/blog/aws-lambda-efs/
